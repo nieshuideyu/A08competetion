@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -95,6 +96,25 @@ public class ImageServiceImpl implements ImageService {
         } catch (IOException e) {
             log.error("读取图片文件失败: {}", e.getMessage());
             throw new ImageProcessingException("读取图片文件失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Map<String, Object>> getHistory() {
+        try {
+            List<Image> images = imageRepository.findAll();  // 直接获取所有记录
+            
+            return images.stream().map(image -> {
+                Map<String, Object> record = new HashMap<>();
+                record.put("id", image.getId());
+                record.put("filename", image.getOriginalFilename());
+                record.put("uploadTime", image.getUploadTime().toString());
+                record.put("filePath", image.getFilePath());
+                return record;
+            }).collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("获取历史记录失败", e);
+            throw new ImageProcessingException("获取历史记录失败: " + e.getMessage());
         }
     }
 } 

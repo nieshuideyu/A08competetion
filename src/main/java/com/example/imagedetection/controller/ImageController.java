@@ -74,8 +74,8 @@ public class ImageController {
         }
     }
 
-    @GetMapping(value = "/detect/image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
-    public ResponseEntity<byte[]> getImage(@PathVariable Long id) {
+    @GetMapping(value = "/get_initial_image/{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public ResponseEntity<byte[]> getInitialImage(@PathVariable Long id) {
         try {
             byte[] imageData = imageService.getImageData(id);
             
@@ -85,8 +85,28 @@ public class ImageController {
             
             return new ResponseEntity<>(imageData, headers, HttpStatus.OK);
         } catch (ImageProcessingException e) {
-            log.error("获取图片失败: {}", e.getMessage());
+            log.error("获取原始图片失败: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<Map<String, Object>> getHistory() {
+        try {
+            List<Map<String, Object>> history = imageService.getHistory();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 200);
+            response.put("message", "获取历史记录成功");
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("records", history);
+            response.put("data", data);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("获取历史记录失败", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "获取历史记录失败");
         }
     }
 } 

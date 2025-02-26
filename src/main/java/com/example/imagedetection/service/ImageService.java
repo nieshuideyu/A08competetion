@@ -8,4 +8,5 @@ public interface ImageService {
     Long uploadImage(MultipartFile file);
     List<Map<String, Object>> detectImage(Long id);
     byte[] getImageData(Long id);
+    List<Map<String, Object>> getHistory();
 }
