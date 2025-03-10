@@ -5,8 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 public interface ImageService {
-    Long uploadImage(MultipartFile file);
+    Map<String, Object> uploadImage(MultipartFile file);
     List<Map<String, Object>> detectImage(Long id);
     byte[] getImageData(Long id);
     List<Map<String, Object>> getHistory();
+    void deleteImage(Long id);
 }

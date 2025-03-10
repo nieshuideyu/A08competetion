@@ -20,7 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "*")
-public class ImageController {
+public class    ImageController {
 
     @Autowired
     private ImageService imageService;
@@ -33,16 +33,13 @@ public class ImageController {
             ImageValidator.validateImage(file);
             
             // 处理图片
-            Long fileId = imageService.uploadImage(file);
+            Map<String, Object> uploadResult = imageService.uploadImage(file);
             
             // 构建响应
             Map<String, Object> response = new HashMap<>();
             response.put("code", 200);
             response.put("message", "文件上传成功");
-            
-            Map<String, Object> data = new HashMap<>();
-            data.put("fileId", fileId);
-            response.put("data", data);
+            response.put("data", uploadResult);
             
             return ResponseEntity.ok(response);
         } catch (ImageProcessingException e) {
@@ -93,20 +90,46 @@ public class ImageController {
     @GetMapping("/history")
     public ResponseEntity<Map<String, Object>> getHistory() {
         try {
+            log.info("收到获取历史记录请求");
             List<Map<String, Object>> history = imageService.getHistory();
             
+            // 构建响应
             Map<String, Object> response = new HashMap<>();
             response.put("code", 200);
-            response.put("message", "获取历史记录成功");
+            response.put("total", history.size());
+            response.put("data", history);
             
-            Map<String, Object> data = new HashMap<>();
-            data.put("records", history);
-            response.put("data", data);
-            
+            log.info("成功返回 {} 条历史记录", history.size());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("获取历史记录失败", e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "获取历史记录失败");
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("code", 500);
+            errorResponse.put("message", "获取历史记录失败: " + e.getMessage());
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(errorResponse);
+        }
+    }
+
+    @DeleteMapping("/images/{id}")
+    public ResponseEntity<Map<String, Object>> deleteImage(@PathVariable Long id) {
+        try {
+            log.info("收到删除图片请求，ID: {}", id);
+            imageService.deleteImage(id);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("code", 200);
+            response.put("message", "删除成功");
+            
+            return ResponseEntity.ok(response);
+        } catch (ImageProcessingException e) {
+            log.error("删除图片失败: {}", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (Exception e) {
+            log.error("删除图片失败", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "删除失败");
         }
     }
 } 
